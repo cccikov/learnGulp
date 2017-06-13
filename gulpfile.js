@@ -121,12 +121,12 @@ gulp.task('browser-sync', function() {
             baseDir: "./"
         }
     });
-    gulp.watch(["**/*.html","**/*.js","**/*.css","!node_modules/**/*.*"]).on("change", function(event){
+    gulp.watch(["*.html","{lib/**/,./}*.js","{lib/**/,./}*.css"]).on("change", function(event){
         console.log(event.path)
         gulp.src(event.path).pipe(browserSync.reload({stream:true}));
     });
 });
-
+// 就算是忽略列表也不要太大 , 否则也会满
 
 // 静态服务器 + 监听 scss/html 文件
 gulp.task('test', ['some'], function() {
