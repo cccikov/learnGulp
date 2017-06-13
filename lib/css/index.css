@@ -1,0 +1,9 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+html body #wrap {
+  padding: 12px;
+  background: #123;
+  overflow: auto;
+}
