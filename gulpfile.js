@@ -1,6 +1,7 @@
 let gulp = require('gulp');
-let less = require('gulp-less');//
+let less = require('gulp-less'); //
 let minicss = require("gulp-clean-css");
+let browserSync = require('browser-sync').create();
 
 
 /**
@@ -49,10 +50,10 @@ gulp.task("autoLess", function() {
 });
 
 
-function lessFn(path){
+function lessFn(path) {
     gulp.src(path).pipe(less()).pipe(gulp.dest("lib/css"));
 }
-// 这个是只会去装换修改的那个文件 , 而不会全部去修改
+// 这个是只会去转换修改的那个文件 , 而不会转换全部less , 减少性能消耗
 gulp.task("autoOneLess", function() {
     gulp.watch("src/**/*.less").on('change', function(event) {
         console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
@@ -73,9 +74,9 @@ gulp.task("minicss", function() {
 // less & minicss
 gulp.task("lessmini", function() {
     gulp.src("src/**/*.less")
-    .pipe(less())
-    .pipe(minicss())
-    .pipe(gulp.dest("lib/css"));
+        .pipe(less())
+        .pipe(minicss())
+        .pipe(gulp.dest("lib/css"));
 });
 
 // 自动 less & minicss 一般没有什么必要 因为只有每天结束提交的时候才需要压缩css
@@ -83,4 +84,29 @@ gulp.task("autoLessmini", function() {
     gulp.watch("src/**/*.less", ['lessmini']).on('change', function(event) {
         console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
     });
+});
+
+
+/**
+ * browser-sync
+ */
+
+// 静态服务器
+gulp.task('server', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+});
+
+
+let reload = browserSync.reload;
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+    gulp.watch("index.html").on("change", reload);
 });
