@@ -94,19 +94,53 @@ gulp.task("autoLessmini", function() {
 // 静态服务器
 gulp.task('server', function() {
     browserSync.init({
-        server: {
-            baseDir: "./"
-        }
+        /*server: {
+            baseDir: "./",// 指定服务器的根目录
+            index:"test.html"// 指定服务器启动的时候,默认打开的文件
+        }*/
+        server: "./" // 等于server: {baseDir: "./"}
     });
 });
 
 
+// 只根据html文件更新
 let reload = browserSync.reload;
-gulp.task('browser-sync', function() {
+gulp.task('syncHtml', function() {
     browserSync.init({
         server: {
             baseDir: "./"
         }
     });
     gulp.watch("index.html").on("change", reload);
+});
+
+//
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+    gulp.watch(["**/*.html","**/*.js","**/*.css","!node_modules/**/*.*"]).on("change", function(event){
+        console.log(event.path)
+        gulp.src(event.path).pipe(browserSync.reload({stream:true}));
+    });
+});
+
+
+// 静态服务器 + 监听 scss/html 文件
+gulp.task('test', ['some'], function() {
+    browserSync.init({
+        server: "./"
+    });
+
+    gulp.watch("**/*.less", ['some']);
+    gulp.watch("**/*.html").on('change', reload);
+});
+
+gulp.task('some', function () {
+    gulp.src('**/*.less')
+        .pipe(less())
+        .pipe(gulp.dest('lib/css'))// Write the CSS & Source maps
+        .pipe(browserSync.reload({stream:true}));
 });
