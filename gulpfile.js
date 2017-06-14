@@ -1,3 +1,5 @@
+// 由于这个文件是学习gulp的时候使用的,所以gulp任务有太多注释,以及有部分gulp是无用的.
+//
 let gulp = require('gulp');
 let less = require('gulp-less'); //
 let minicss = require("gulp-clean-css");
@@ -6,14 +8,14 @@ let browserSync = require('browser-sync').create();
 
 
 // 文件路径
-let lessPath = "src/**/*.less"; // 需要装换less路径
-let less2cssPath = "lib/css"; // less装换css后存放路径
-let cssPath = "lib/css/**/*.css"; // 需要压缩的css路径
-let css2miniPath = "lib/mini"; // 压缩后的css路径
+let lessPath = "web/**/*.less"; // 需要装换less路径,是全部转换less的位置;若是哪个修改转换哪个,位置在修改的那个less所在文件夹
+let less2cssPath = "web/"; // less装换css后存放路径
+let cssPath = ["web/**/*.css","!web/**/*.min.css"]; // 需要压缩的css路径
+let css2miniPath = "web/"; // 压缩后的css路径
 
-let browserSyncPath = ["*.html","{lib/**/,./}*.js","{lib/**/,./}*.css"];// 监视同步路径
-let browserSyncWithoutCssPath = ["*.html","{lib/**/,./}*.js"]; // 监视路径不要css
-let browserSyncRootPath = "./"; //服务器根目录
+let browserSyncPath = ["web/**/*.html","web/**/*.js","web/**/*.css"];// 监视同步路径
+let browserSyncWithoutCssPath = ["web/**/*.html","web/**/*.js"]; // 监视路径不要css
+let browserSyncRootPath = "./web"; //服务器根目录
 let browserSyncIndex = "index.html";// 服务器启动的时候,默认打开的文件
 
 
@@ -71,17 +73,30 @@ gulp.task("autoLess", function() {
 
 
 // 这个是只会去转换修改的那个文件 , 而不会转换全部less , 减少性能消耗. 考拉就是单个装换
-function lessFn(path,destPath) {
-    gulp.src(path).pipe(less()).pipe(gulp.dest(destPath));
+function lessFn(path,destPath) {// 只有path是event.path的时候才可以忽略destPath
+    destPath = destPath || path.split("\\").slice(0,-1).join("/");//如果path是event.path,写入文件路径就是被读取文件的当前文件夹
+    return gulp.src(path).pipe(less()).pipe(gulp.dest(destPath)); // 返回流,调用后在返回值后面再流的操作
 }
 gulp.task("autoOneLess", function() {
     gulp.watch(lessPath)
     .on('change', function(event) {
         console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-        lessFn(event.path,less2cssPath);
+        lessFn(event.path);
     });
 });
 // 单个转换也有弊端 , 就是如果有个 基础less , 其他每个less都引入了;这是只修改了
+
+// 对于path也是一个问题
+// gulp.src(path)采用的是**/任意文件夹写法 比如web/**/*.css 读取到的文件假设是 web/css/layout/index.css 其中**/就是对应css/layout/中间的路径 , 所以gulp.dest()写入的时候也会补上这个路径
+// 但是如果是采用了event.path就会具体到某个文件,相当于是*.css,在gulp.dest()写入的时候是不会不会补上中间路径
+//假设读取文件的路径为 web/css/layout/index.css   采用 gulp.src("web/**/*.css").pipe(gulp.dest("new/"))            的话  写入的文件路径为new/css/layout/index.css
+//                                                采用 gulp.src("web/css/layout/index.css").pipe(gulp.dest("new/"))的话  写入的文件路径为           new/index.css
+//
+// gulp.task("test",function(){
+//     gulp.src("web/**/testPath.css").pipe(gulp.dest("new/")); //写入文件的路径D:\learnGulp\new\css\layout\testPath.css
+//     // gulp.src("web/css/layout/testPath.css").pipe(gulp.dest("new/"));写入文件的路径 D:\learnGulp\new\testPath.css 就缺少了**/匹配到的\css\layout
+// });
+// 因此我们要通过watch的path和event.path 去修改对应的destPath
 
 
 
@@ -148,7 +163,6 @@ gulp.task("autoLessmini", function() {
 /**
  * browser-sync
  */
-
 // 静态服务器
 gulp.task('server', function() {
     browserSync.init({
@@ -171,10 +185,6 @@ gulp.task('syncFile', function() {
     });
     gulp.watch(syncFilePath).on("change", reload);
 });
-
-
-
-
 
 // 浏览器同步
 gulp.task('browser-sync', function() {
@@ -206,7 +216,19 @@ gulp.task('browser-sync', function() {
 
 
 
-// 监视同时转换less
+
+
+
+
+
+
+
+
+
+
+/**
+ * 监视同时转换less
+ */
 // 方式1 实际监视的是css , 只是less转换的时候触发css变化(可能不能用全部转换方法,只能用哪个less变化就装换哪个)
 gulp.task('syncLess', function() {
     browserSync.init({
@@ -218,7 +240,7 @@ gulp.task('syncLess', function() {
 
     // 转换less
     gulp.watch(lessPath).on('change', function(event) {
-        lessFn(event.path,less2cssPath);
+        lessFn(event.path);
     });
     // 监视文件变化同步浏览器
     gulp.watch(browserSyncPath).on("change", function(event){
@@ -236,16 +258,13 @@ gulp.task('syncLess2', function() {
     });
     // 转换less 并刷新
     gulp.watch(lessPath).on('change', function(event) {
-        synclessFn(event.path,less2cssPath);
+        synclessFn(event.path);
     });
     // 监视文件变化同步浏览器
     gulp.watch(browserSyncWithoutCssPath).on("change", function(event){
         gulp.src(event.path).pipe(browserSync.reload({ stream: true }));
     });
 });
-function synclessFn(path,destPath){
-    gulp.src(path)
-        .pipe(less())
-        .pipe(gulp.dest(destPath))
-        .pipe(browserSync.reload({ stream: true }));
+function synclessFn(path){
+    lessFn(path).pipe(browserSync.reload({ stream: true }));
 }
