@@ -74,7 +74,17 @@ gulp.task("autoLess", function() {
 
 // 这个是只会去转换修改的那个文件 , 而不会转换全部less , 减少性能消耗. 考拉就是单个装换
 function lessFn(path,destPath) {// 只有path是event.path的时候才可以忽略destPath
-    destPath = destPath || path.split("\\").slice(0,-1).join("/");//如果path是event.path,写入文件路径就是被读取文件的当前文件夹
+    let path_separator = path.includes("\\") ? "\\" : "/"; // 路径分隔符 windows 是"\" , linux是"/"
+    let pathArr = path.split(path_separator);
+    let arrLen = pathArr.length;
+    let removeIndex = -1;//删除数组的下标
+    if(pathArr[arrLen-1] == ""){//因为如果是文件夹的话是以\结尾 , 那么数组的最后一个就为 ""
+        removeIndex = -2;
+    }
+    destPath = destPath || pathArr.slice(0,removeIndex).join("/");//如果path是event.path,写入文件路径就是被读取文件的当前文件夹
+    //如果path是event.path,写入文件路径就是被读取文件的当前文件夹
+    // 但是由于watch的路径是含有 **/的话 ,新建文件夹也会触发,path----D:\learnGulp\web\css\新建文件夹\ destPath---D:/learnGulp/web/css/新建文件夹 那么就会把"新建文件夹"放在 D:/learnGulp/web/css/新建文件夹 就会无限建文件夹
+    // 所以要判断path是否以 "/" 结尾
     return gulp.src(path).pipe(less()).pipe(gulp.dest(destPath)); // 返回流,调用后在返回值后面再流的操作
 }
 gulp.task("autoOneLess", function() {
