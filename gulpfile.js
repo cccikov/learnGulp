@@ -1,6 +1,7 @@
 let gulp = require('gulp');
 let less = require('gulp-less'); //
 let minicss = require("gulp-clean-css");
+let rename = require("gulp-rename");
 let browserSync = require('browser-sync').create();
 
 
@@ -104,7 +105,7 @@ gulp.task("autoOneLess", function() {
 
 // minicss
 gulp.task("minicss", function() {
-    gulp.src(cssPath).pipe(minicss()).pipe(gulp.dest(css2miniPath));
+    gulp.src(cssPath).pipe(minicss()).pipe(rename({suffix: '.min'})).pipe(gulp.dest(css2miniPath));
 });
 
 // less & minicss
@@ -112,6 +113,7 @@ gulp.task("lessmini", function() {
     gulp.src(lessPath)
         .pipe(less())
         .pipe(minicss())
+        .pipe(rename({suffix: '.min'}))//重命名
         .pipe(gulp.dest(css2miniPath));
 });
 
