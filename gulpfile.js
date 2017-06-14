@@ -9,10 +9,12 @@ let browserSync = require('browser-sync').create();
 let lessPath = "src/**/*.less"; // 需要装换less路径
 let less2cssPath = "lib/css"; // less装换css后存放路径
 let cssPath = "lib/css/**/*.css"; // 需要压缩的css路径
-let css2miniPath = less2cssPath; // 压缩后的css路径
+let css2miniPath = "lib/mini"; // 压缩后的css路径
 
 let browserSyncPath = ["*.html","{lib/**/,./}*.js","{lib/**/,./}*.css"];// 监视同步路径
 let browserSyncWithoutCssPath = ["*.html","{lib/**/,./}*.js"]; // 监视路径不要css
+let browserSyncRootPath = "./"; //服务器根目录
+let browserSyncIndex = "index.html";// 服务器启动的时候,默认打开的文件
 
 
 /**
@@ -112,6 +114,7 @@ gulp.task("minicss", function() {
 gulp.task("lessmini", function() {
     gulp.src(lessPath)
         .pipe(less())
+        .pipe(gulp.dest(less2cssPath))
         .pipe(minicss())
         .pipe(rename({suffix: '.min'}))//重命名
         .pipe(gulp.dest(css2miniPath));
@@ -177,7 +180,8 @@ gulp.task('syncFile', function() {
 gulp.task('browser-sync', function() {
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: browserSyncRootPath,
+            index:browserSyncIndex
         }
     });
     gulp.watch(browserSyncPath).on("change", function(event){
@@ -187,6 +191,7 @@ gulp.task('browser-sync', function() {
 });
 // browser-sync start --server --files "**/*.html,**/*.css,**/*.js"   browser-sync 不用gulp grunt等构造工具直接使用写法;
 // 若用gulp去监视全部html,js,css文件 启动会十分慢(只要是由于"node_modules/"中大量文件) 甚至报错 所以还是监视指定文件夹里面的html,js,css,less(只要是少量文件会比browser-sync直接使用启动快好多);
+// 所以以后那些资源文件(或者所在文件夹)都不要放在根目录 可以找个文件夹装着 比如web/ web/*.html web/css/*.css web/js/*.js
 
 // 就算是忽略列表也不能太大 , 否则也会慢 即使["*.html","!node_modules/**/*.html"] 也会比 "*.html" 慢好多 , 虽然忽略列表可以不写 , 所以还不要尝试去检测全部html,js,css文件变化(即使忽略了node_modules/目录也慢);例子如下
 // gulp.task('testSpeed', function() {
@@ -206,7 +211,8 @@ gulp.task('browser-sync', function() {
 gulp.task('syncLess', function() {
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: browserSyncRootPath,
+            index:browserSyncIndex
         }
     });
 
@@ -224,7 +230,8 @@ gulp.task('syncLess', function() {
 gulp.task('syncLess2', function() {
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: browserSyncRootPath,
+            index:browserSyncIndex
         }
     });
     // 转换less 并刷新
