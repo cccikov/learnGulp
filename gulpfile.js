@@ -10,13 +10,13 @@ let browserSync = require('browser-sync').create();
 // 文件路径
 let lessPath = "web/**/*.less"; // 需要装换less路径,是全部转换less的位置;若是哪个修改转换哪个,位置在修改的那个less所在文件夹
 let less2cssPath = "web/"; // less装换css后存放路径
-let cssPath = ["web/**/*.css","!web/**/*.min.css"]; // 需要压缩的css路径
+let cssPath = ["web/**/*.css", "!web/**/*.min.css"]; // 需要压缩的css路径
 let css2miniPath = "web/"; // 压缩后的css路径
 
-let browserSyncPath = ["web/**/*.html","web/**/*.js","web/**/*.css"];// 监视同步路径
-let browserSyncWithoutCssPath = ["web/**/*.html","web/**/*.js"]; // 监视路径不要css
+let browserSyncPath = ["web/**/*.html", "web/**/*.js", "web/**/*.css"]; // 监视同步路径
+let browserSyncWithoutCssPath = ["web/**/*.html", "web/**/*.js"]; // 监视路径不要css
 let browserSyncRootPath = "./web"; //服务器根目录
-let browserSyncIndex = "index.html";// 服务器启动的时候,默认打开的文件
+let browserSyncIndex = "index.html"; // 服务器启动的时候,默认打开的文件
 
 
 /**
@@ -28,7 +28,7 @@ let browserSyncIndex = "index.html";// 服务器启动的时候,默认打开的�
  * {} 类似正则的分组 src/{index,layout}.less 会 拆分为"src/index.less","src/layout.less" 即{index,layout}有点类似/(index)|(layout)/g
  */
 
-gulp.task('default', ["less","syncLess2"], function() {
+gulp.task('default', ["less", "syncLess2"], function() {
     console.log("********\n执行了 less & syncLess2\n********");
 });
 
@@ -60,28 +60,28 @@ gulp.task("someLess", function() {
 
 // 正式
 gulp.task("less", function() {
-    gulp.src(lessPath).pipe(less()).pipe(gulp.dest(less2cssPath));//其实用lessFn(lessPath,less2cssPath) 也行
+    gulp.src(lessPath).pipe(less()).pipe(gulp.dest(less2cssPath)); //其实用lessFn(lessPath,less2cssPath) 也行
 });
 
 // 自动编译less
 gulp.task("autoLess", function() {
-    gulp.watch(lessPath, ['less'])// 后面的任务不要是监视任务,是一次性任务(任务里面没有watch),否则就会出现好多重监视
-    .on('change', function(event) {
-        console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-    });
+    gulp.watch(lessPath, ['less']) // 后面的任务不要是监视任务,是一次性任务(任务里面没有watch),否则就会出现好多重监视
+        .on('change', function(event) {
+            console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+        });
 });
 
 
 // 这个是只会去转换修改的那个文件 , 而不会转换全部less , 减少性能消耗. 考拉就是单个装换
-function lessFn(path,destPath) {// 只有path是event.path的时候才可以忽略destPath
+function lessFn(path, destPath) { // 只有path是event.path的时候才可以忽略destPath
     let path_separator = path.includes("\\") ? "\\" : "/"; // 路径分隔符 windows 是"\" , linux是"/"
     let pathArr = path.split(path_separator);
     let arrLen = pathArr.length;
-    let removeIndex = -1;//删除数组的下标
-    if(pathArr[arrLen-1] == ""){//因为如果是文件夹的话是以\结尾 , 那么数组的最后一个就为 ""
+    let removeIndex = -1; //删除数组的下标
+    if (pathArr[arrLen - 1] == "") { //因为如果是文件夹的话是以\结尾 , 那么数组的最后一个就为 ""
         removeIndex = -2;
     }
-    destPath = destPath || pathArr.slice(0,removeIndex).join("/");//如果path是event.path,写入文件路径就是被读取文件的当前文件夹
+    destPath = destPath || pathArr.slice(0, removeIndex).join("/"); //如果path是event.path,写入文件路径就是被读取文件的当前文件夹
     //如果path是event.path,写入文件路径就是被读取文件的当前文件夹
     // 但是由于watch的路径是含有 **/的话 ,新建文件夹也会触发,path----D:\learnGulp\web\css\新建文件夹\ destPath---D:/learnGulp/web/css/新建文件夹 那么就会把"新建文件夹"放在 D:/learnGulp/web/css/新建文件夹 就会无限建文件夹
     // 所以要判断path是否以 "/" 结尾
@@ -89,10 +89,10 @@ function lessFn(path,destPath) {// 只有path是event.path的时候才可以忽�
 }
 gulp.task("autoOneLess", function() {
     gulp.watch(lessPath)
-    .on('change', function(event) {
-        console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-        lessFn(event.path);
-    });
+        .on('change', function(event) {
+            console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+            lessFn(event.path);
+        });
 });
 // 单个转换也有弊端 , 就是如果有个 基础less , 其他每个less都引入了;这是只修改了
 
@@ -132,7 +132,7 @@ gulp.task("autoOneLess", function() {
 
 // minicss
 gulp.task("minicss", function() {
-    gulp.src(cssPath).pipe(minicss()).pipe(rename({suffix: '.min'})).pipe(gulp.dest(css2miniPath));
+    gulp.src(cssPath).pipe(minicss()).pipe(rename({ suffix: '.min' })).pipe(gulp.dest(css2miniPath));
 });
 
 // less & minicss
@@ -141,16 +141,16 @@ gulp.task("lessmini", function() {
         .pipe(less())
         .pipe(gulp.dest(less2cssPath))
         .pipe(minicss())
-        .pipe(rename({suffix: '.min'}))//重命名
+        .pipe(rename({ suffix: '.min' })) //重命名
         .pipe(gulp.dest(css2miniPath));
 });
 
 // 自动 less & minicss 一般没有什么必要 因为只有每天结束提交的时候才需要压缩css
 gulp.task("autoLessmini", function() {
     gulp.watch(lessPath, ['lessmini'])
-    .on('change', function(event) {
-        console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-    });
+        .on('change', function(event) {
+            console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+        });
 });
 
 
@@ -201,10 +201,10 @@ gulp.task('browser-sync', function() {
     browserSync.init({
         server: {
             baseDir: browserSyncRootPath,
-            index:browserSyncIndex
+            index: browserSyncIndex
         }
     });
-    gulp.watch(browserSyncPath).on("change", function(event){
+    gulp.watch(browserSyncPath).on("change", function(event) {
         console.log(event.path);
         gulp.src(event.path).pipe(browserSync.reload({ stream: true }));
     });
@@ -244,7 +244,7 @@ gulp.task('syncLess', function() {
     browserSync.init({
         server: {
             baseDir: browserSyncRootPath,
-            index:browserSyncIndex
+            index: browserSyncIndex
         }
     });
 
@@ -253,7 +253,7 @@ gulp.task('syncLess', function() {
         lessFn(event.path);
     });
     // 监视文件变化同步浏览器
-    gulp.watch(browserSyncPath).on("change", function(event){
+    gulp.watch(browserSyncPath).on("change", function(event) {
         gulp.src(event.path).pipe(browserSync.reload({ stream: true }));
     });
 });
@@ -263,7 +263,7 @@ gulp.task('syncLess2', function() {
     browserSync.init({
         server: {
             baseDir: browserSyncRootPath,
-            index:browserSyncIndex
+            index: browserSyncIndex
         }
     });
     // 转换less 并刷新
@@ -271,10 +271,11 @@ gulp.task('syncLess2', function() {
         synclessFn(event.path);
     });
     // 监视文件变化同步浏览器
-    gulp.watch(browserSyncWithoutCssPath).on("change", function(event){
+    gulp.watch(browserSyncWithoutCssPath).on("change", function(event) {
         gulp.src(event.path).pipe(browserSync.reload({ stream: true }));
     });
 });
-function synclessFn(path){
+
+function synclessFn(path) {
     lessFn(path).pipe(browserSync.reload({ stream: true }));
 }
