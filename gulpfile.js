@@ -101,7 +101,16 @@ gulp.task("autoOneLess", function() {
 // 但是如果是采用了event.path就会具体到某个文件,相当于是*.css,在gulp.dest()写入的时候是不会不会补上中间路径
 //假设读取文件的路径为 web/css/layout/index.css   采用 gulp.src("web/**/*.css").pipe(gulp.dest("new/"))            的话  写入的文件路径为new/css/layout/index.css
 //                                                采用 gulp.src("web/css/layout/index.css").pipe(gulp.dest("new/"))的话  写入的文件路径为           new/index.css
-//
+
+// 后面看gulp api才发现
+// 路径是这么组成的 读取路径: base + 中间路径 + 文件名 , base默认就是"glob"前面的字符串; 写入路径: destPath + 中间路径 + 新文件名
+// "web/**/*.css"来匹配 , 默认的base就是"web/" , 以"web/css/layout/index.css"为例.就是"web/" + "css/layout/"+ "index.css" , 中间路径为"css/layout/" , 所以写入的时候就为 "new/" + "css/layout/" + "index.css" .
+// 若是直接写文件的路径来匹配"web/css/layout/index.css" , 默认的base就是"web/css/layout/" , 组成就是"web/css/layout/" + "" + "index.css" , 中间路径为""空字符串 , 所以写入得时候就为 "new/" + "" + "index.css" .
+// api可通过设options.base来设定base 原来我这么辛苦写的方法 , 竟然api就可以实现了 , 还是看api的时候不仔细啊
+
+
+
+
 // gulp.task("test",function(){
 //     gulp.src("web/**/testPath.css").pipe(gulp.dest("new/")); //写入文件的路径D:\learnGulp\new\css\layout\testPath.css
 //     // gulp.src("web/css/layout/testPath.css").pipe(gulp.dest("new/"));写入文件的路径 D:\learnGulp\new\testPath.css 就缺少了**/匹配到的\css\layout
