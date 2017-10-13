@@ -248,7 +248,7 @@ gulp.task('browser-sync', function() {
 /**
  * 监视同时转换less
  */
-// 方式1 实际监视的是css , 只是less转换的时候触发css变化(可能不能用全部转换方法,只能用哪个less变化就装换哪个)
+// 方式1 实际监视的是css , 只是less转换的时候触发css变化(可能不能用全部转换方法 , 只能用哪个less变化就装换哪个 , 因为全部转换瞬间会有多个css变化 , 造成多次刷新)
 gulp.task('syncLess', function() {
     browserSync.init({
         server: {
@@ -288,3 +288,28 @@ gulp.task('syncLess2', function() {
 function synclessFn(path) {
     lessFn(path).pipe(browserSync.reload({ stream: true }));
 }
+
+
+
+
+gulp.task("changeFile", function () {
+    // 用来检测对新建文件的反应
+    gulp.watch(["./web/*.html", "./web/js/*.js", "./web/css/*.css", "./web/less/*.less"], function (e) {
+        console.log("方式1", e.path, "文件改变");
+    });
+
+    gulp.watch(["web/*.html", "web/js/*.js", "web/css/*.css", "web/less/*.less"], function (e) {
+        console.log("方式2", e.path, "文件改变");
+    });
+
+    gulp.watch(["./web/**/*.html", "./web/js/**/*.js", "./web/css/**/*.css", "./web/less/**/*.less"], function (e) {
+        console.log("方式3", e.path, "文件改变");
+    });
+
+    gulp.watch(["web/**/*.html", "web/js/**/*.js", "web/css/**/*.css", "web/less/**/*.less"], function (e) {
+        console.log("方式4", e.path, "文件改变");
+    });
+
+    // 经过发现 方式2 和 方式4 是对新建文件有反应的 , 所以想要对新文件有反应 , 不要路径上不要加上 ./
+    // 还发现如果 , 如果文件里面一个对应类型的文件都不曾有过(比如 web/css 里面没有一个css文件) , 那么新建的该类型文件是没有反应的(在该文件新建的第一个css是没有反应的)
+});
